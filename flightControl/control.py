@@ -53,7 +53,7 @@ class Controller(threading.Thread):
 				if(not self.checkAbort()):
 #					print "Would write commands"
 					self.computeControl() #writes the control values to self.vehicleState
-					self.scaleAndWriteCommands()
+#					self.scaleAndWriteCommands()
 #			print "pushing to queue" + str(time.time())
 			self.pushStateToTxQueue() #sends the state to the UDP sending threading
 			self.pushStateToLoggingQueue()
@@ -109,7 +109,8 @@ class Controller(threading.Thread):
 			self.vehicleStateabortReason = "Timeout"
 			self.vehicleState.isFlocking = False
 			self.vehicleState.RCLatch = True
-			self.releaseControl()
+#			self.commenceRTL()
+#			self.releaseControl()
 			self.commands = {0,0,0}			
 			return True
 		print "Flight Mode: " + str(self.vehicle.mode)
@@ -119,7 +120,7 @@ class Controller(threading.Thread):
 			self.vehicleState.isFlocking = False
 			self.vehicleState.abortReason = "Control Mode" #Elaborate on this to detect RTL due to failsafe
 			# print "About to RTL" + str(time.time())
-			self.commenceRTL()
+#			self.commenceRTL()
 			# print "returned from RTL function" + str(time.time())
 			self.commands = {0,0,0}
 			return True
@@ -128,14 +129,16 @@ class Controller(threading.Thread):
 			self.vehicelState.RCLatch = True
 			self.vehicelState.isFlocking = False
 			self.vehicleState.abortReason = "Geofence"
-			self.commenceRTL()
+#			self.commenceRTL()
 			self.commands = {0,0,0}
+			return True
 		if (self.vehicle.channels['6'] < 1700 or self.vehicle.channels['6'] > 2100):
 			self.vehicleState.isFlocking = False
 			self.vehicleState.RCLatch = True			
 			self.abortReason = "RC Disable"
 			print "RC Disable" + str(time.time())
-			self.releaseControl()
+#			self.commenceRTL()
+#			self.releaseControl()
 			self.commands = {0,0,0}
 			return True
 		print "Do not abort flocking"
