@@ -1,0 +1,14 @@
+TODO:
+
+Ensure clearing of integrated position errors (and other integrator states)
+test new phiDot term
+log: mode, isFlocking, abortReason
+Address packet loss issues
+fix: logging of last received from agent
+
+
+
+long term:
+ground station control of gains, monitoring without running SSH from ground
+start on boot
+cyclic log files

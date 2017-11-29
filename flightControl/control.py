@@ -333,7 +333,7 @@ class Controller(threading.Thread):
 
 		#print 'pl = ' + str(pl)
 
-		qil = getRelPos(ql_gps,qi_gps)
+		qil = getRelPos(ql_gps,qi_gps) # 2 i - l
 		qil.shape=(2,1)
 		pl.shape =(2,1)
 
@@ -369,7 +369,7 @@ class Controller(threading.Thread):
 		pil = pi - (pl + phiDot * gamma * qdil) #in plane relative velocity (inertial)
 
 		CS.plTerm = pl
-		CS.phiDotTerm = phiDot * gamma * qdil
+		CS.phiDotTerm = phiDot * gamma *Obi.transpose()*  qdil
 		CS.kplTerm = -kl.kp * eqil
 		CS.kilTerm= -kl.ki *Eqil
 		CS.kdlTerm = -kl.kd * (pil) #phi dot included in pil
@@ -431,7 +431,11 @@ class Controller(threading.Thread):
 		
 		theta = THIS.heading
 		thetaD = m.atan2(ui[1,0],ui[0,0])
-		
+		amp = 0.2
+		f= 0.3
+		t = (datetime.now() - THIS.startTime).total_seconds()
+
+		thetaD = amp*m.sin(f*2*m.pi*t)
 
 		
 		
@@ -446,6 +450,7 @@ class Controller(threading.Thread):
 	#	print "thetaDLast" + str(thetaDLast)  + " " + str(thetaD)
 
 		thetaDDotApprox  = (1- a) * lastThetaDDotApprox +a/Ts *wrapToPi(thetaD-thetaDLast)
+		thetaDDotApprox = 2*m.pi*f * amp*m.cos(f*2*m.pi*t)
 		CS.thetaDDotApprox = thetaDDotApprox 
 		CS.thetaD=thetaD
 
@@ -474,12 +479,24 @@ class Controller(threading.Thread):
 		groundspd = np.linalg.norm(pi,2)
 
 		accHeadingError= CS.accHeadingError
-
-		CS.rollPTerm=	-ktheta.kp*etheta
-		CS.rollITerm=	-ktheta.ki * CS.accHeadingError
-		CS.rollDTerm =  -ktheta.kd * (calcTurnRate-thetaDDotApprox)
-		CS.rollFFTerm = GAINS['kThetaFF']*(thetaDDotApprox * groundspd / 9.81)
-		#CS.rollFFTerm = GAINS['kThetaFF']*LEADER.attitude.roll
+		#trying lead control
+		b1 = 0.8825
+		a1 = 0.9910     # where u = etheta and y = CS.rollPTerm
+		a0 = 25.58*2.3/10
+		
+		#CS.rollPTerm=-(etheta - b1*CS.e1 + a0*a1*CS.u1) / a0
+		CS.rollPTerm = -(b1*CS.e1 + a0*etheta-a0*a1*CS.u1)
+		CS.e1 = CS.rollPTerm
+		CS.u1 = etheta
+		
+		#CS.rollPTerm=	ktheta.kp*etheta
+		CS.rollITerm=	ktheta.ki * CS.accHeadingError
+		CS.rollDTerm =  ktheta.kd * (calcTurnRate-thetaDDotApprox)
+		#CS.rollFFTerm = GAINS['kThetaFF']*(thetaDDotApprox * groundspd / 9.81)
+		#print "arg: " + str(thetaDDotApprox*groundspd)
+		#print "tangent
+		CS.rollFFTerm = -GAINS['kThetaFF']*(m.atan(thetaDDotApprox*groundspd/9.81) )
+		#CS.rollFFTerm = -GAINS['kThetaFF']*LEADER.attitude.roll
 		print "FFTerm " + str(CS.rollFFTerm)
 
 
@@ -517,6 +534,8 @@ class Controller(threading.Thread):
 		airspd = THIS.airspeed
 		#print 'groundspeed: '+str(groundspd)
 		#print 'airspeed: ' + str(airspd)
+
+		speedD = 20
 
 		
 		asTarget = speedD + (airspd-groundspd)
