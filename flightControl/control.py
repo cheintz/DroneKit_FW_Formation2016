@@ -7,6 +7,7 @@ import Queue
 import threading
 import recordtype
 import jsonpickle
+from collections import deque
 import math as m
 from datetime import datetime, timedelta
 import numpy as np
@@ -41,6 +42,8 @@ class Controller(threading.Thread):
 		self.stoprequest = threading.Event()
 		self.lastGCSContact = -1
 		self.startTime=startTime
+		self._oldHdgInputs = deque([0,0,0,0],4);
+		self._oldHdgOutputs = deque([0,0,0,0],4);
 		
 		#def servoMsgHandler(self,name,m):	
 		#self.vehicle.add_message_listener('SERVO_OUTPUT_RAW',self.servoMsgHandler)
@@ -503,10 +506,19 @@ class Controller(threading.Thread):
 		print "Etheta: " + str(CS.accHeadingError)
 		print "thetaDDot: " + str(CS.thetaDDotApprox)
 		
-		rollCMD =CS.rollPTerm + CS.rollITerm  + CS.rollDTerm +CS.rollFFTerm
+		#rollCMD =CS.rollPTerm + CS.rollITerm  + CS.rollDTerm +CS.rollFFTerm
 
+		numCoeffs = [ 0,    2.8940,   -8.7416  ,  9.8181 ,  -4.9974 ,   1.1164  , -0.0893]
+		denCoeffs = [1.0000 ,  -2.8723  ,  3.4006  , -2.1961  ,  0.8201 ,  -0.1568    0.0116]
+
+		self._oldHdgOutputs.appendleft(0) #placeholder
+		self._oldHdgInputs.appendleft(etheta)
 		
-		
+
+		rollCMD = -evalTF(numCoeffs,list(self._oldHdgInputs), denCoeffs, list(self._oldHdgOutputs))
+				
+		self._oldHdgOutputs.popleft()# remove placeholder\
+		self._oldHdgOutputs.appendleft(rollCMD)
 
 		
 
@@ -535,7 +547,7 @@ class Controller(threading.Thread):
 		#print 'groundspeed: '+str(groundspd)
 		#print 'airspeed: ' + str(airspd)
 
-		speedD = 20
+		speedD = 18
 
 		
 		asTarget = speedD + (airspd-groundspd)
@@ -657,6 +669,20 @@ def antiWindupVec(value, lowLimit,highLimit, accumulator, toAdd):
 		else:
 			accumulator[i] =accumulator[i]+toAdd[i]
 	return accumulator
+def evalTF(numCoeffs,numTerms,denCoeffs,denTerms):
+	out = 0
+
+	print denCoeffs
+	for i in range(1,len(denCoeffs)):
+		print type(denCoeffs[i])
+		out-=denCoeffs[i]*denTerms[i]
+
+	for i in range(0,len(numCoeffs)):
+		out+=numCoeffs[i]*numTerms[i]
+	return out/denCoeffs[0]
+
+	
+
 
 
 
