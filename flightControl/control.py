@@ -42,8 +42,8 @@ class Controller(threading.Thread):
 		self.stoprequest = threading.Event()
 		self.lastGCSContact = -1
 		self.startTime=startTime
-		self._oldHdgInputs = deque([0,0,0,0],4);
-		self._oldHdgOutputs = deque([0,0,0,0],4);
+		self._oldHdgInputs = deque([0,0,0,0,0,0,0,0],8);
+		self._oldHdgOutputs = deque([0,0,0,0,0,0,0,0],8);
 		
 		#def servoMsgHandler(self,name,m):	
 		#self.vehicle.add_message_listener('SERVO_OUTPUT_RAW',self.servoMsgHandler)
@@ -437,8 +437,11 @@ class Controller(threading.Thread):
 		amp = 0.2
 		f= 0.3
 		t = (datetime.now() - THIS.startTime).total_seconds()
+		#t  = self.counter * 1.0/20.0
+		print "t =" + str(t) + "\n\n\n"
 
 		thetaD = amp*m.sin(f*2*m.pi*t)
+		#thetaD = 0
 
 		
 		
@@ -508,18 +511,22 @@ class Controller(threading.Thread):
 		
 		#rollCMD =CS.rollPTerm + CS.rollITerm  + CS.rollDTerm +CS.rollFFTerm
 
-		numCoeffs = [ 0,    2.8940,   -8.7416  ,  9.8181 ,  -4.9974 ,   1.1164  , -0.0893]
-		denCoeffs = [1.0000 ,  -2.8723  ,  3.4006  , -2.1961  ,  0.8201 ,  -0.1568    0.0116]
+		#numCoeffs = [    0 ,   4.5223 , -17.6471 ,  27.3281 , -21.2052 ,   8.5294,   -1.6469 ,   0.1194]
+		#denCoeffs = [  1.0000 ,  -4.2738 ,   7.6179 ,  -7.3013 ,   4.0300 ,  -1.2651,   0.2063,   -0.0137]
+
+		numCoeffs = [   0,3.8311,-14.2845,20.8822,-15.0321,5.5005,-0.9819,0.084731]
+		denCoeffs = [ 1,-3.9222,6.6251,-6.2516,3.4647,-1.0438,0.12787,-7.456e-06]
+		
 
 		self._oldHdgOutputs.appendleft(0) #placeholder
 		self._oldHdgInputs.appendleft(etheta)
-		
+		#self._oldHdgInputs.appendleft(thetaD)
 
-		rollCMD = -evalTF(numCoeffs,list(self._oldHdgInputs), denCoeffs, list(self._oldHdgOutputs))
+		rollCMD = evalTF(numCoeffs,list(self._oldHdgInputs), denCoeffs, list(self._oldHdgOutputs))
 				
+	
 		self._oldHdgOutputs.popleft()# remove placeholder\
-		self._oldHdgOutputs.appendleft(rollCMD)
-
+		self._oldHdgOutputs.appendleft(rollCMD)	
 		
 
 		rollLimit=GAINS['rollLimit']
@@ -529,11 +536,15 @@ class Controller(threading.Thread):
 		
 		rollCMD = saturate(rollCMD,-rollLimit,rollLimit)
 		#print "saturatedRoll: " + str(rollCMD)
+		
+
 		thisCommand.rollCMD =rollCMD
 		print 'RollTarget:' + str(thisCommand.rollCMD)# str((180/m.pi)*thisCommand.rollCMD)
 
 		accHeadingError = antiWindup(rollCMD,-rollLimit,rollLimit,accHeadingError,etheta*Ts)
-		accHeadingError = saturate(accHeadingError,-GAINS['maxETheta'],GAINS['maxETheta'])		
+		accHeadingError = saturate(accHeadingError,-GAINS['maxETheta'],GAINS['maxETheta'])	
+
+		
 		
 		CS.accHeadingError=accHeadingError
 
@@ -671,10 +682,13 @@ def antiWindupVec(value, lowLimit,highLimit, accumulator, toAdd):
 	return accumulator
 def evalTF(numCoeffs,numTerms,denCoeffs,denTerms):
 	out = 0
-
-	print denCoeffs
+	print numTerms
+	print denTerms
+#	print str(len(denCoeffs))+ "\t" + str(len(denCoeffs))
+#	print denCoeffs[7]
+#	print denTerms[7]
+#
 	for i in range(1,len(denCoeffs)):
-		print type(denCoeffs[i])
 		out-=denCoeffs[i]*denTerms[i]
 
 	for i in range(0,len(numCoeffs)):
