@@ -53,14 +53,14 @@ class Logger(multiprocessing.Process):
 		thisState = msg.content['thisState']
 		self.lastState = thisState
 
-		if(thisState.bvs.counter<= self.lastLogged):
+		if(thisState.counter<= self.lastLogged):
 			print "Error: Logged states out of order: Last Logged: " + str(self.lastLogged)+ ", This Counter: " + str(thisState.counter) 
 			#print "last state: "  + str(self.lastState.time)
 	#		#print "this state: " + str(thisState.time)
 	#		raise ValueError('Attempt to log vehicleStates out of sequence!!') 
 		#print "lastDiff" + str(thisState.counter - self.lastLogged)
 #		print "\t\t" + str(thisState.counter) + "\t" + str(self.logQueue.qsize())	
-		self.lastLogged = thisState.bvs.counter
+		self.lastLogged = thisState.counter
 		self.lastTransmittedState = thisState
 
 		if not self.headerWritten: #only do this once

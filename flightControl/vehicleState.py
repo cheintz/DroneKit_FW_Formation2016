@@ -14,10 +14,7 @@ Parameter = recordtype('Parameter',['receivedTime','desiredPosition','gains', 'T
 
 Command = recordtype('Command',['SpeedD','asTarget','thetaD','thetaDDot','rollCMD','pitchCMD','throttleCMD','timestamp'], default = 0.0)#,use_slots=False)
 
-CourseAngle = recordtype('CourseAngle',['heading','headingRate','headingAccel','pitch','pitchRate','pitchAccel'],default=0.0)	
-
-BasicVehicleState = recordtype('BasicVehicleState',['ID',('timestamp',None),'position','velocity','fwdAccel',('courseAngle',CourseAngle()),
-	('propagated',0),('counter',0)], default=0.0)
+CourseAngle = recordtype('CourseAngle',['value','rate','accel'],default=0.0)	
 
 ControlState = recordtype('ControlState',[('plTerm',zeroVect),('kplTerm',zeroVect),('kpjTerm',{}),'qldd'
 	,('phiDotTerm',zeroVect),('kilTerm',zeroVect), ('uiTarget',zeroVect),'etheta','accHeadingError',('rollTerms',PIDTerms()),'accAirspeedError'
@@ -25,17 +22,33 @@ ControlState = recordtype('ControlState',[('plTerm',zeroVect),('kplTerm',zeroVec
 	,'backstepSpeed','backstepSpeedError','backstepSpeedRate','backstepPosError']
 	, default = 0.0)
 
-FullVehicleState = recordtype('FullVehicleState', [ ('startTime',None),['bvs',BasicVehicleState()], 'attitude','imuAccel'
-	, 'channels', 'mode', ('command',Command()), ('controlState',ControlState()), ('isFlocking',False), ('RCLatch', True)
-	, ('abortReason',{}), ('timeout', Timeout()), ('parameters',Parameter()),('servoOut',{'1':None,'2':None,'3':None})
-	, ('airspeed',0.0),('groundspeed',0.0) ,('wind_estimate',{'vx':None,'vy':None,'vz':None})
-	], default = None )
-		
-
 Message = recordtype('Message','type,sendTime,content', default = None) #content shall contain the timestamp of the most recent parameter set.
 
+class BasicVehicleState(object):
+	def __init__(self):
+		self.ID = None
+		self.timestamp = None
+		self.position = 0.0
+		self.velocity = 0.0
+		self.fwdAccel = 0.0
+		self.heading = CourseAngle()
+		self.pitch = CourseAngle()
+		self.isPropagated = False
+		self.counter = 0
+		self.isFlocking = False
 		
-		
-		
-
-
+class FullVehicleState(BasicVehicleState):
+	def __init__(self):
+		super(FullVehicleState, self).__init__()
+		self.startTime = None
+		self.attitude = None
+		self.imuAccel = None
+		self.chanels = None
+		self.mode = None
+		self.command = Command()
+		self.controlState = ControlState()
+		self.RCLatch = True
+		self.airspeed = 0.0
+		self.groundspeed = 0.0
+		self.windEstimate = {'vx':None,'vy':None,'vz':None}
+		self.timeout= Timeout()
