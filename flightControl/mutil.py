@@ -17,9 +17,9 @@ def vsToLogPrep(vs):
 	out=''
 	
 	headers.append('ID')
-	values.append(vs.ID)
+	values.append(vs.bvs.ID)
 	headers.append('Counter')
-	values.append(vs.counter)
+	values.append(vs.bvs.counter)
 	
 	for k in attitudeKeys:
 		headers.append(k)
