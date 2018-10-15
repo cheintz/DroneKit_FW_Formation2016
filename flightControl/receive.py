@@ -38,8 +38,8 @@ class Receiver(multiprocessing.Process):
 	def receiveMessage(self):
 		try:
 			mp = self.s.recvfrom(4096)
-#			if(False):
-			if(mp[1] == (self.AdHocIP,self.port)):
+			if(False):
+		#	if(mp[1] == (self.AdHocIP,self.port)):
 				print "received my own message"
 				pass
 			else:
@@ -59,7 +59,7 @@ class Receiver(multiprocessing.Process):
 #					print type(msg)
 #					print msg.content
 #					print "Received valid packet from" + str(msg.content.ID) + " With Roll: " + str(msg.content.attitude.roll)
-					print "received message from: " + str(msg.content.ID)
+					#print "received message from: " + str(msg.content.ID)
 					self.receiveQueue.put(msg)
 					pass
 				except ValueError:

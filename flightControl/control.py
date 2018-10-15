@@ -65,8 +65,8 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 					msg = self.receiveQueue.get(False)
 					self.updateGlobalStateWithData(msg)
 					#self.receiveQueue.task_done() #May or may not be helpful
-				#except Queue.Empty:
-				except:
+				except Queue.Empty:
+				#except:
 					break #no more messages.
 			self.getVehicleState() #Get update from the Pixhawk
 			#print "RelTime: " + str((datetime.now() - self.startTime).total_seconds())
@@ -113,7 +113,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 			#self.vehicleState.timeout.peerLastRX[ID]=msg.sendTime
 			self.vehicleState.timeout.peerLastRX[ID]=datetime.now()
 			if(not self.vehicleState.isFlocking): #reset accumulated position error if not flocking
-				self.vehicleState.controlState.accPosError[msg.content.ID] = np.matrix([[0],[0]])
+				pass
 			
 	def scaleAndWriteCommands(self):
 		print "Writing RC commands"
@@ -366,7 +366,6 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 	#using PID for inertial velocity commands, for heading comand, and for altitude
 	def computeFlockingControl(self):
 		thisCommand  = Command()
-		print "keys: " + str(self.stateVehicles.keys())
 		LEADER = self.stateVehicles[(self.parameters.leaderID)]
 		#LEADER = self.stateVehicles[(2)]
 		THIS = self.vehicleState
