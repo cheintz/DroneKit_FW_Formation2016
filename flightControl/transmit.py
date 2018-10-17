@@ -45,7 +45,7 @@ class Transmitter(multiprocessing.Process):
 	def sendMessage(self, msg):
 		mp = cPickle.dumps(msg,cPickle.HIGHEST_PROTOCOL)
 		mp = zlib.compress(mp)
-#		print "Length: " + str(len(mp))	
+		#print "Length: " + str(len(mp))	
 
 #		print "Length zlib: "+str(len(zlib.compress(mp)))	
 #		print "Encoded is" + mp

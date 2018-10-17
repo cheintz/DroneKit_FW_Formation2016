@@ -72,7 +72,6 @@ def vsToLogPrep(vs):
 
 	d = vs.command._asdict()
 	for k in d.keys():
-#		print k
 		item = d[k]
 		if isinstance(item,np.matrix):
 			(h,v)=handleMatrix(item,k)
