@@ -414,8 +414,8 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 		self.pm.p( 'Time: = ' + str(THIS.time))	
 	#Compute from leader 
 		eqil = qil - Obi.transpose()* qdil
-		self.pm.p("eqil Inertial: " + str(eqil))
-		self.pm.p("eqil Leader: " + str(Obi*eqil))
+		self.pm.p("qil Inertial: " + str(qil))
+		self.pm.p("qil Leader: " + str(Obi*qil))
 		pil = pi - (pl + phiDot * gamma * qdil) #in plane relative velocity (inertial)
 
 		CS.plTerm = pl
@@ -477,6 +477,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 		CS.backstepPosError =  1/GAINS['aSpeed'] * -eqil.transpose()*fi*1/GAINS['lambda']
 		asTarget = CS.backstepSpeed + CS.backstepSpeedRate + CS.backstepSpeedRate + CS.backstepPosError
 		THIS.command.asTarget=saturate(asTarget,vMin,vMax)
+	
 
 	def rollControl(self):
 		THIS=self.vehicleState	
@@ -512,7 +513,8 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 			(THIS.fwdAccel),self.thisTS,throttleFFTerm)
 		CS.accSpeedError=self.throttleController.integrator
 		cmd.timestamp = datetime.now()
-		self.pm.p( 'eSpeed ' + str(eSpeed))
+		self.pm.p('eSpeed ' + str(eSpeed))
+		self.pm.p('ASDesired: ' + str(cmd.asTarget))
 
 	#altitude control
 	def pitchControl(self):

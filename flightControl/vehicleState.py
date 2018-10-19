@@ -13,7 +13,8 @@ Timeout = recordtype('Timeout' , ['GCSTimeoutTime', ('peerTimeoutTime',{}), 'loc
 
 Parameter = recordtype('Parameter',['receivedTime','desiredPosition','gains', 'Ts', 'GCSTimeout', 'peerTimeout', 'leaderID', 'expectedMAVs', 'rollGain', 'config', 'rollOffset', 'pitchGain', 'pitchOffset', 'throttleGain', 'throttleMin',('txStateType','basic')], default = None)
 
-Command = recordtype('Command',['speedD','speedDDot','asTarget','thetaD','thetaDDot','rollCMD','pitchCMD','throttleCMD','timestamp'], default = 0.0)#,use_slots=False)
+Command = recordtype('Command',['speedD','speedDDot','asTarget','thetaD','thetaDDot','rollCMD',
+	'pitchCMD','throttleCMD','timestamp'], default = None)
 
 CourseAngle = recordtype('CourseAngle',['value','rate','accel'],default=0.0)	
 

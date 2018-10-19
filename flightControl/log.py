@@ -14,7 +14,7 @@ import copy
 
 class Logger(multiprocessing.Process):
 
-	def __init__(self,logQueue,logPath,n,startTime):
+	def __init__(self,logQueue,logPath,n,startTime,fileSuffix):
 		multiprocessing.Process.__init__(self)
 		self.logQueue=logQueue
 		self.stoprequest = multiprocessing.Event()
@@ -22,7 +22,7 @@ class Logger(multiprocessing.Process):
 #		self.file=open(datetime.now().strftime("%y_%m_%d_%H_%M_%S_log.csv"),'w')
 		#self.file=open(os.path.join("/home/pi/logs" ,datetime.now().strftime("log_%Y_%m_%d__%H_%M_%S.csv")),'w')
 		self.startTime=startTime
-		self.file=open(os.path.join(logPath ,self.startTime.strftime("%Y_%m_%d__%H_%M_%S_log.csv")),'w')
+		self.file=open(os.path.join(logPath,  self.startTime.strftime("%Y_%m_%d__%H_%M_%S_log") + fileSuffix+ '.csv'),'w' ) 
 		self.headerWritten = False
 		self.lastLogged = 0
 		self.numItemsPerSelf=0
@@ -58,7 +58,6 @@ class Logger(multiprocessing.Process):
 		if not self.headerWritten: #only do this once	
 			#Assume same type of logging as this vehicle
 			self.writeHeaderString(thisState)
-			self.numItemsPerSelf = len(thisDict.keys())
 			self.headerWritten = True
 
 		outString = str(thisState.time) + ','
@@ -86,9 +85,11 @@ class Logger(multiprocessing.Process):
 		n=self.expectedMAVs
 
 		thisList =thisState.getCSVLists().keys()
+		self.numItemsPerSelf = len(thisList)
 		if(thisState.parameters.txStateType == 'basic'):
 			temp = BasicVehicleState(copy.deepcopy(thisState))
 			otherList = temp.getCSVLists()
+			self.numItemsPerOther = len(otherList)
 		else:
 			otherList = thisList
 

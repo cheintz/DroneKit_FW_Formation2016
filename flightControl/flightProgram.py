@@ -36,9 +36,7 @@ receiveQueue = multiprocessing.Queue()
 
 startTime=datetime.now()
 
-receiveThread = receive.Receiver(receiveQueue,AdHocIP,peerReadPort,defaultParams.config['ignoreSelfPackets'])
-transmitThread = transmit.Transmitter(transmitQueue,AdHocIP,peerReadPort,transmitAddress)
-logThread = log.Logger(loggingQueue,logPath,defaultParams.expectedMAVs,startTime)
+
 
 #Parse the connection arg and connect to the vehicle
 parser = argparse.ArgumentParser(description='Print out vehicle state information. Connects to SITL on local PC by default.')
@@ -62,7 +60,11 @@ vehicle = connect(connection_string, wait_ready=True, rate=1/defaultParams.Ts, b
 
 vehicle.wait_ready('autopilot_version')
 
-#defaultParams = vehicleState.Parameter(time.time(),False,0,0) #now generated in defaultConfig.py
+receiveThread = receive.Receiver(receiveQueue,AdHocIP,peerReadPort,defaultParams.config['ignoreSelfPackets'])
+transmitThread = transmit.Transmitter(transmitQueue,AdHocIP,peerReadPort,transmitAddress)
+
+fileSuffix =   '_v' + str(int(vehicle.parameters['SYSID_THISMAV']))
+logThread = log.Logger(loggingQueue,logPath,defaultParams.expectedMAVs,startTime,fileSuffix)
 
 controlThread = control.Controller(loggingQueue,transmitQueue,receiveQueue,vehicle,defaultParams,startTime)
 
