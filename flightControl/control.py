@@ -226,6 +226,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 	def getVehicleState(self):		#Should probably check for timeout, etc.
 		self.vehicleState.timeout.peerLastRX[self.vehicleState.ID]=datetime.now()
 		self.vehicleState.timeout.localTimeoutTime=lastPX4RxTime =datetime.now()
+		self.vehicleState.navCtrlOut = self.vehicle.nav_controller_output
 
 		if self.vehicleState.timestamp is None: #startup calculation of Ts
 			self.vehicleState.timestamp = datetime.now() 
@@ -365,6 +366,8 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 		elif (self.parameters.config['mode'] == 'MiddleLoopSimultaneous' ):
 			self.PilotMiddleLoopRefs()
 		self.rollControl()
+		print "PythonCmdRoll: " +str(-self.vehicleState.command.rollCMD)
+		print "Nav_Roll:\t" + str(self.vehicleState.navCtrlOut.nav_roll / 180 * m.pi)
 		self.throttleControl()
 		self.pitchControl()
 
@@ -567,7 +570,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 		cmd.timestamp = datetime.now()
 		self.pm.p('Alt Error: ' + str(altError))
 	def updateInternalObjects(self):#This unfortunately also resets integrator states, 
-					#but this should never be called when the controll is running anyway...
+					#but this should never be called when the control is running anyway...
 		gains = self.parameters.gains
 		self.pm = PrintManager(self.parameters.config['printEvery'])
 		self.rollController = PIDController(gains['kTheta'], -gains['rollLimit'],gains['rollLimit']

@@ -72,6 +72,8 @@ controlThread = control.Controller(loggingQueue,transmitQueue,receiveQueue,vehic
 
 print "default params" + str(defaultParams)
 
+print "\n\nMy ID: "+ str(vehicle.parameters['SYSID_THISMAV']) 
+
 threads = []
 threads.append(controlThread)
 threads.append(receiveThread)

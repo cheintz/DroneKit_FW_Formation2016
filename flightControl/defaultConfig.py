@@ -15,12 +15,12 @@ def getParams():
 		, 'maxETheta':5,'maxEAlt':50,'maxESpeed':300, 'aSpeed':0.4,'gamma':1,'lambda':10000,'kSpdToThrottle':0,'nomSpeed':18.5
 		,'kThrottleFF': 1,'kRollFF':1}
 	defaultParams.config = {'printEvery':10,'ignoreSelfPackets':False,'propagateStates':True , 'geofenceAbort':False
-		,'mode':'Formation',
+		,'mode':'MiddleLoopSimultaneous',
 		'acceptableEngageMode': (VehicleMode('FBWA'),VehicleMode('AUTO'),VehicleMode('RTL'),VehicleMode('CIRCLE') ) }
 	defaultParams.GCSTimeout = 5 #seconds
 	defaultParams.peerTimeout = 4 #seconds
 	defaultParams.leaderID = 1   #MAV ID of leader
-	defaultParams.expectedMAVs = 2 #One, plus the leaders
+	defaultParams.expectedMAVs = 1 #One, plus the leaders
 	defaultParams.rollGain= -500/(50/(180/m.pi)) #degrees per PWM
 	defaultParams.rollOffset=1500
 	defaultParams.pitchGain = -500/(20/(180/m.pi)) #m/s per PWM
