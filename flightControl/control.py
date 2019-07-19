@@ -344,7 +344,9 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 			propagateVehicleState(self.vehicleState,(datetime.now() -self.vehicleState.position.time).total_seconds()) 				#propagate positions forward. Note that they will not propagated repeatedly; 
 			#will just propagate repeatedly from the last message received from the Pixhawk. 
 			#That should be okay for "this" agent.
-		if(self.vehicle.channels['8'] < 1200):
+		if(True):
+			self.vehicleState.qdIndex = 0
+		elif(self.vehicle.channels['8'] < 1200):
 			self.vehicleState.qdIndex = 0
 		elif(self.vehicle.channels['8'] < 1700):
 			self.vehicleState.qdIndex = 1
@@ -749,7 +751,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 		CS = THIS.controlState
 		desiredAlt = cmd.qd[2]; #Negative = above ground because NED coordinate system
 
-		altError = -np.asscalar(-THIS.position.alt -THIS.parameters.desiredPosition[self.vehicleState.ID-2,np.matrix([2])])
+		altError = -np.asscalar(-THIS.position.alt -THIS.parameters.desiredPosition[0,self.vehicleState.ID-2,np.matrix([2])])
 		(cmd.pitchCMD, CS.pitchTerms) = self.altitudeController.update(altError,
 			THIS.velocity[2], self.thisTS, 0)
 		CS.accAltError = self.altitudeController.integrator
