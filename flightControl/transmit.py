@@ -51,7 +51,7 @@ class Transmitter(multiprocessing.Process):
 		#print len(mp)
 
 	#	print "packetLength: " + str(len(mp))
-
+		print self.sendAddress
 	#	print "Length zlib: "+str(len(zlib.compress(mp)))	
 #		print "Encoded is" + mp
 		self.s.sendto(mp,self.sendAddress);

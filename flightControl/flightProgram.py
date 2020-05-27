@@ -26,6 +26,7 @@ except:
 
 
 if(sitlFlag):
+	print "SITLflag true writing stuff"
 	broadcastIP= "10.0.2.255"
 	import defaultConfig_SITL as defaultConfig
 else:

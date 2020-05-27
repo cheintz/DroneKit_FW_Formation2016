@@ -8,10 +8,10 @@ import math as m # MiddleLoopSimultaneous Formation
 def getParams():
 	defaultParams = Parameter()
 	defaultParams.receivedTime = time.time()     #Note: negative Z = up
-	defaultParams.desiredPosition=np.array([[[0,-0,-80],[-10,10,-10]], 
+	defaultParams.desiredPosition=np.array([[[-10,-10,-80],[-10,10,-10]], 
 		[[-0.5,-0.5,-80],[-0.5,-0.5,-120]] ])  #Agent, amount forward, amount right, absolute altitude, meters
 
-	defaultParams.gains = {'kl':0.7*0.3*np.diag([1,1,0.3]) , 'ka': .1*np.diag([1,1,0.3]) ,'alpha1': 0.001,'alpha2':100,'d':0.01
+	defaultParams.gains = {'ki':3, 'kl':0.7*0.3*np.diag([1,1,0.3]) , 'ka': .1*np.diag([1,1,0.3]) ,'alpha1': 0.001,'alpha2':100,'d':0.01
 		,'vMin': 16,'vMax':30,'kBackstep':0,'aFilterHdg':0.1,'aFilterSpd':.1, 'aFilterThetaDDot': .8,'kHeading':KPID(.1,0.03,0.5*0)
 		,'kSpeed':KPID(5,0.8,3),'rollLimit':50/(180/m.pi),'kPitch':KPID(1, 0.2,.2),'kAlt':KPID(.026, .0017,.0105),'pitchLimit':20/(180/m.pi)
 		, 'maxEHeading':50,'maxEPitch':50,'maxESpeed':300, 'aSpeed':0.4,'gammaS':1,'kSpdToThrottle':5,'nomSpeed':18.5

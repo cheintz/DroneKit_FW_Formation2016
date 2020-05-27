@@ -14,6 +14,24 @@ import copy
 from pid import PIDController
 from curtsies import Input
 
+import sys, traceback
+
+import threading, sys, traceback
+
+def dumpstacks(signal, frame):
+    id2name = dict([(th.ident, th.name) for th in threading.enumerate()])
+    code = []
+    for threadId, stack in sys._current_frames().items():
+        code.append("\n# Thread: %s(%d)" % (id2name.get(threadId,""), threadId))
+        for filename, lineno, name, line in traceback.extract_stack(stack):
+            code.append('File: "%s", line %d, in %s' % (filename, lineno, name))
+            if line:
+                code.append("  %s" % (line.strip()))
+    print "\n".join(code)
+
+import signal
+signal.signal(signal.SIGQUIT, dumpstacks)
+
 
 
 try:
@@ -513,6 +531,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 
 		kl = GAINS['kl']
 		ka = GAINS['ka']
+		ki = GAINS['ki']
 		alpha2 = GAINS['alpha2']
 		alpha1 = GAINS['alpha1']
 		d = GAINS['d']
@@ -544,7 +563,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 #		self.pm.p("OmegaGDot: " + str(OmegaGDot))
 
 		RgDot = Rg*OmegaG;
-		RgDDot =Rg*OmegaG*OmegaG+ 0*Rg*OmegaGDot;
+		RgDDot =Rg*OmegaG*OmegaG+ 0*Rg*OmegaGDot
 		pgDot = LEADER.fwdAccel * Rg*e1 + (Rg * OmegaG) * e1 * sg 
 		#print "Centripedal: " + str(Rg*OmegaG * e1 * sg)
 		CS.pgDot = pgDot
@@ -568,7 +587,7 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 		#print "With" + str(CS.pgTerm)
 		CS.pgTerm = pg
 		CS.rotFFTerm = RgDot*di
-		self.pm.p('F(zetai)' + str( F(zetai)))
+		pdiDot = pgDot + RgDDot * di
 #		print "Without" + str(CS.pgTerm)
 
 #########################Feed-forward Lead filter
@@ -590,12 +609,12 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 #		self.lastFF = FF 
 		#CS.pgTerm = FFFilt   #enable this to actually do the lead 
 		
-		CS.kplTerm = -kl * sigma(zetai)*(zetai) - 1* kl * sigma(zetai)*zetaiDot
+		CS.kplTerm = -kl * (zetai)
+		phii = CS.kplTerm
+		phiiDot = -kl* zetaiDot
 
-		pdiDot = pgDot+RgDDot*di  - kl*( np.asscalar(sigmaDot(zetai).transpose()*zetaiDot)*zetai + sigma(zetai)*zetaiDot )
-
-		temp = (np.asscalar(f(zetai).transpose()*zetaiDot) *( pg+RgDot*di ) + F(zetai)*( pgDot+RgDDot*di      )
-			-kl*( np.asscalar(sigmaDot(zetai).transpose()*zetaiDot)*zetai + sigma(zetai)*zetaiDot ))
+		#temp = (np.asscalar(f(zetai).transpose()*zetaiDot) *( pg+RgDot*di ) + F(zetai)*( pgDot+RgDDot*di      )
+	#		-kl*( np.asscalar(sigmaDot(zetai).transpose()*zetaiDot)*zetai + sigma(zetai)*zetaiDot ))
 
 		CS.kpjTerm = np.matrix([[0],[0],[0]])
 
@@ -616,11 +635,13 @@ class Controller(threading.Thread): 	#Note: This is a thread, not a process,  be
 					zetaij[2] = 0
 					zetaijDot[2] = 0
 
-				CS.kpjTerm = CS.kpjTerm -ka* sigma(zetaij)*zetaij
-				pdiDot = pdiDot +  -ka * ( np.asscalar(sigmaDot(zetaij).transpose()*zetaijDot) * zetaij + sigma(zetai)*zetaijDot )
+				CS.kpjTerm = CS.kpjTerm -ka* zetaij
+				phiiDot = phiiDot  -ka *  zetaijDot
 
-
-		pdi=CS.pgTerm+CS.rotFFTerm+CS.kplTerm+CS.kpjTerm
+		#print ("Error: " + str(CS.kplTerm + CS.kpjTerm - phii))
+		pdi=CS.pgTerm+CS.rotFFTerm+ ki*sigma(phii) * phii
+		#print "pdiDot: " + str(pdiDot)
+		pdiDot = pdiDot + ki*np.asscalar(sigmaDot(phii).transpose()*phiiDot)*phii + sigma(phii)*phiiDot
 		if (THIS.parameters.config['dimensions'] == 2 and not pdi[2] == 0):
 			print "Warning, pdi not 2D. pdi[2]: " + str(pdi[2])
 
@@ -945,11 +966,11 @@ def skew(omega):
 
 def sigma(x):
 	#return 1.0
-	return 500/m.sqrt(500**2+x.transpose()*x)
+	return 1/m.sqrt(1+x.transpose()*x)
 
 def sigmaDot(x):
 	#return np.matrix(np.zeros((3,1)))
-	return -500*x/(np.asscalar(500**2+x.transpose()*x)**(3.0/2.0))
+	return -1*x/(np.asscalar(1+x.transpose()*x)**(3.0/2.0))
 
 def F(x):
 	return 1.0
